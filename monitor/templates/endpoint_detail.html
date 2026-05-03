@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}{{ endpoint }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'project_detail' endpoint.project.pk %}" class="btn btn-secondary">← Вернуться к проекту</a>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>{{ endpoint.method }} {{ endpoint.path }}</h2>
+    <p class="text-muted">Проект: <strong>{{ endpoint.project.name }}</strong></p>
+  </div>
+  <div class="col-md-4 text-end">
+    <a href="{% url 'endpoint_delete' endpoint.pk %}" class="btn btn-danger">Удалить эндпоинт</a>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Параметры SLA</h6>
+        <p><strong>Макс. задержка:</strong> {{ endpoint.sla_latency_ms }} мс</p>
+        <p><strong>Макс. ошибок:</strong> {{ endpoint.sla_error_rate|floatformat:1 }}%</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Статистика (24 часа)</h6>
+        <p><strong>Нарушений SLA:</strong> <span class="badge bg-danger">{{ recent_breaches }}</span></p>
+        <p><strong>Всего проверок:</strong> {{ recent_measurements|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if plots.latency %}
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Задержка (мс)</div>
+      <div class="card-body">
+        {{ plots.latency|safe }}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Доступность (%)</div>
+      <div class="card-body">
+        {{ plots.availability|safe }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">Частота ошибок (%)</div>
+      <div class="card-body">
+        {{ plots.errors|safe }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<h4 class="mb-3">Последние измерения</h4>
+<div class="table-responsive">
+  <table class="table table-striped table-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>Время</th>
+        <th>Задержка (мс)</th>
+        <th>Статус</th>
+        <th>Ошибка</th>
+        <th>SLA нарушено</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in recent_measurements %}
+      <tr class="{% if m.sla_breached %}table-danger{% endif %}">
+        <td>{{ m.timestamp|date:"d M H:i:s" }}</td>
+        <td>{{ m.response_time_ms|floatformat:0 }}</td>
+        <td><span class="badge bg-{% if m.status_code >= 400 %}danger{% elif m.status_code >= 300 %}warning{% else %}success{% endif %}">{{ m.status_code }}</span></td>
+        <td>{% if m.is_error %}<span class="badge bg-danger">Да</span>{% else %}<span class="badge bg-success">Нет</span>{% endif %}</td>
+        <td>{% if m.sla_breached %}<span class="badge bg-danger">Нарушено</span>{% else %}<span class="badge bg-success">OK</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">Нет данных</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

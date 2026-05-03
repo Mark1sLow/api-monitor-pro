@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'dashboard' %}" class="btn btn-secondary">← На панель управления</a>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>{{ project.name }}</h2>
+    <p class="text-muted">URL: <strong>{{ project.url }}</strong></p>
+    <p class="text-muted">Создан: {{ project.created_at|date:"d M Y в H:i" }}</p>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h4>Эндпоинты ({{ endpoints.count }})</h4>
+    <a href="{% url 'create_endpoint' project.pk %}" class="btn btn-success mb-3">+ Добавить эндпоинт</a>
+    
+    {% if endpoints %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>Метод</th>
+            <th>Путь</th>
+            <th>Макс. задержка</th>
+            <th>Макс. ошибок</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ep in endpoints %}
+          <tr>
+            <td><span class="badge bg-info">{{ ep.method }}</span></td>
+            <td>{{ ep.path }}</td>
+            <td>{{ ep.sla_latency_ms }} мс</td>
+            <td>{{ ep.sla_error_rate|floatformat:1 }}%</td>
+            <td>
+              <a href="{% url 'endpoint_detail' ep.pk %}" class="btn btn-sm btn-primary">Просмотр</a>
+              <a href="{% url 'endpoint_delete' ep.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Нет эндпоинтов. Добавьте первый эндпоинт для начала мониторинга.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

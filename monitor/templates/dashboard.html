@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Панель управления{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card bg-light">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Проектов</h6>
+        <h3>{{ project_count }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Эндпоинтов</h6>
+        <h3>{{ endpoint_count }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Проверок (7 дней)</h6>
+        <h3>{{ total_measurements }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-danger text-white">
+      <div class="card-body">
+        <h6 class="card-title">Нарушений SLA (24ч)</h6>
+        <h3>{{ sla_breaches }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="mb-4">Ваши проекты</h2>
+<a href="{% url 'create_project' %}" class="btn btn-success mb-4">+ Создать проект</a>
+
+<div class="row">
+  {% for proj in projects %}
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ proj.name }}</h5>
+        <small>{{ proj.url }}</small>
+      </div>
+      <div class="card-body">
+        <h6>Эндпоинты ({{ proj.endpoint_set.count }}):</h6>
+        {% if proj.endpoint_set.all %}
+        <ul class="list-group list-group-flush">
+          {% for ep in proj.endpoint_set.all %}
+          <li class="list-group-item">
+            <a href="{% url 'endpoint_detail' ep.pk %}" class="text-decoration-none">
+              <span class="badge bg-info">{{ ep.method }}</span> {{ ep.path }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">Нет эндпоинтов</p>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-light">
+        <a href="{% url 'project_detail' proj.pk %}" class="btn btn-sm btn-primary">Подробнее</a>
+        <a href="{% url 'create_endpoint' proj.pk %}" class="btn btn-sm btn-success">Добавить эндпоинт</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="alert alert-info" role="alert">
+    <h4 class="alert-heading">Добро пожаловать!</h4>
+    <p>У вас пока нет проектов. Создайте первый проект для начала мониторинга API.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
