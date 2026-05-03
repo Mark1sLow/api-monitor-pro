@@ -147,26 +147,3 @@ DATABASES = {
 # Каждый 5 минут
 */5 * * * * /path/to/venv/bin/python /path/to/project/manage.py check_endpoints
 ```
-
-## 🤝 Вклад в проект
-
-1. Fork репозиторий
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Создайте Pull Request
-
-## 📄 Лицензия
-
-Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для подробностей.
-
-## 📞 Контакты
-
-- **Автор**: Mark1sLow
-- **Email**: voronovmd8@gmail.com
-- **GitHub**: https://github.com/Mark1sLow
-
----
-
-⭐ Если проект оказался полезным, поставьте звезду на GitHub!
-
