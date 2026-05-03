@@ -17,10 +17,10 @@ class Command(BaseCommand):
             try:
                 url = endpoint.project.url.rstrip('/') + endpoint.path
                 
-                start = datetime.now()
+                start = timezone.now()
                 try:
                     resp = requests.get(url, timeout=10)
-                    elapsed = (datetime.now() - start).total_seconds() * 1000  # ms
+                    elapsed = (timezone.now() - start).total_seconds() * 1000  # ms
                     is_error = resp.status_code >= 400
                 except requests.Timeout:
                     elapsed = 10000  # timeout
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 
                 measurement = Measurement.objects.create(
                     endpoint=endpoint,
-                    timestamp=datetime.now(),
+                    timestamp=timezone.now(),
                     response_time_ms=elapsed,
                     status_code=status_code,
                     is_error=is_error,
