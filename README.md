@@ -3,25 +3,80 @@
 Система мониторинга и анализа SLI/SLO API-методов веб-приложений для DevOps-инженеров.
 
 Сервис позволяет отслеживать ключевые метрики производительности API:
-- **Задержка ответа** (Latency)
-- **Доступность** (Availability)
-- **Частота ошибок** (Error Rate)
+- **Задержка ответа** (Latency) - время ответа API-метода в миллисекундах
+- **Доступность** (Availability) - процент успешных запросов
+- **Частота ошибок** (Error Rate) - доля запросов с ошибками
+
+**Ссылка на рабочий проект:** [https://voron.pythonanywhere.com/](https://voron.pythonanywhere.com/)
+
+## 🎯 Проблема, которую решает сервис
+
+DevOps-инженеры теряют значительное время на анализ логов и метрик API. API Monitor Pro автоматизирует мониторинг, визуализирует данные и отправляет уведомления при нарушении SLA - всё в одной системе.
+
+## 👥 Роли пользователей
+
+- **Гость**: Просмотр общедоступных метрик и статус-страницы
+- **Зарегистрированный пользователь**: Полный доступ к своим проектам, созданию/редактированию эндпоинтов, просмотру аналитики
+- **Администратор**: Управление всеми пользователями, проектами и глобальные системные отчеты
 
 ## 🚀 Возможности
 
-- 📊 **Визуализация метрик** - Графики на Plotly для анализа трендов
-- ⚠️ **Уведомления SLA** - Email оповещения при нарушении порогов
-- 🔄 **Автоматический мониторинг** - Периодическая проверка API
-- 👥 **Многопользовательский режим** - Изоляция проектов между пользователями
-- 📱 **Адаптивный интерфейс** - Bootstrap 5 дизайн
+- 📊 **Визуализация метрик** - Графики на Plotly для анализа трендов за последние 7 дней
+- ⚠️ **Уведомления SLA** - Email оповещения при нарушении порогов задержки и ошибок
+- 🔄 **Автоматический мониторинг** - Management command для периодической проверки API
+- 👥 **Многопользовательский режим** - Полная изоляция данных между пользователями
+- 📱 **Адаптивный интерфейс** - Bootstrap 5, работает на мобильных устройствах
+- 📈 **Аналитика на Pandas** - Автоматический расчет SLI/SLO статистики
+
+## 📊 Модели данных
+
+### Project (Проект)
+Группировка API-методов, принадлежит одному пользователю
+- `name` - Название проекта
+- `url` - Базовый URL API
+- `owner` - Владелец (ForeignKey на User)
+- `created_at` - Дата создания
+
+### Endpoint (Эндпоинт)
+Конкретный метод API для мониторинга
+- `project` - Проект, к которому относится (ForeignKey)
+- `method` - HTTP метод (GET, POST, PUT, DELETE)
+- `path` - Путь эндпоинта (например, `/users`)
+- `sla_latency_ms` - Максимальная допустимая задержка в мс
+- `sla_error_rate` - Максимальная допустимая частота ошибок (0.05 = 5%)
+
+### Measurement (Измерение)
+Результат одной проверки эндпоинта
+- `endpoint` - Проверяемый эндпоинт (ForeignKey)
+- `timestamp` - Время проверки
+- `response_time_ms` - Время ответа
+- `status_code` - HTTP статус код
+- `is_error` - Была ли ошибка
+- `sla_breached` - Нарушен ли SLA
 
 ## 🛠 Технологии
 
 - **Backend**: Django 4.2, Python 3.12+
-- **База данных**: SQLite (для разработки), PostgreSQL (для продакшена)
-- **Фронтенд**: Bootstrap 5, Plotly.js
-- **Задачи**: Django Management Commands
-- **Email**: SMTP (Gmail, etc.)
+- **База данных**: SQLite (разработка), PostgreSQL (продакшен)
+- **Фронтенд**: Bootstrap 5, Plotly.js, HTML5
+- **Анализ данных**: Pandas для расчета SLI/SLO метрик
+- **HTTP запросы**: Requests для проверки API
+- **Задачи**: Django Management Commands для автоматизации
+- **Email**: SMTP (поддержка Gmail и других SMTP провайдеров)
+
+## 📸 Скриншоты
+
+### Панель управления (Dashboard)
+![Dashboard](/screenshots/dashboard.png)
+*Главная страница с статистикой проектов, эндпоинтов и нарушений SLA за 24 часа*
+
+### Детали эндпоинта с графиками
+![Endpoint Details](/screenshots/endpoint_detail.png)
+*Страница эндпоинта с графиками задержки, доступности и частоты ошибок за 7 дней*
+
+### Управление проектом
+![Project Management](/screenshots/project_detail.png)
+*Страница проекта со списком эндпоинтов и возможностью их управления*
 
 ## 📦 Установка
 
@@ -71,100 +126,156 @@ python manage.py createsuperuser
 python create_admin.py
 ```
 
-## 🚀 Запуск
-
-### Режим разработки
+### 7. Запуск сервера
 ```bash
 python manage.py runserver
 ```
 Приложение будет доступно по адресу: http://127.0.0.1:8000/
 
-### Проверка API (ручной запуск)
-```bash
-python manage.py check_endpoints
-```
+## 🚀 Использование
 
-## 📊 Использование
-
-### 1. Авторизация
+### Авторизация
 - Перейдите на http://127.0.0.1:8000/
 - Войдите с учетными данными суперпользователя
 
-### 2. Создание проекта
+### Создание проекта
 - Нажмите "Создать проект"
 - Укажите название и базовый URL API
+- Подтвердите создание
 
-### 3. Добавление эндпоинтов
+### Добавление эндпоинтов
 - В проекте нажмите "Добавить эндпоинт"
-- Укажите метод (GET/POST/PUT/DELETE), путь и параметры SLA
+- Укажите HTTP метод (GET/POST/PUT/DELETE)
+- Укажите путь эндпоинта (например, `/posts/1`)
+- Установите параметры SLA (макс. задержка в мс, макс. ошибок в %)
+- Подтвердите
 
-### 4. Мониторинг
-- Просматривайте графики и статистику на странице эндпоинта
-- Получайте уведомления при нарушении SLA
+### Проверка и Мониторинг
+```bash
+# Ручная проверка API
+python manage.py check_endpoints
+
+# Для автоматизации добавьте в cron (каждые 5 минут):
+*/5 * * * * cd /path/to/project && python manage.py check_endpoints
+```
+
+### Просмотр аналитики
+- На странице эндпоинта вы увидите:
+  - Графики задержки, доступности и ошибок за 7 дней
+  - Таблицу последних измерений
+  - Счетчик нарушений SLA за 24 часа
 
 ## 📁 Структура проекта
 
 ```
 api-monitor-pro/
-├── config/                 # Настройки Django
-├── monitor/                # Основное приложение
-│   ├── management/commands/  # Management команды
-│   ├── migrations/          # Миграции БД
-│   ├── templates/           # HTML шаблоны
-│   └── ...
-├── static/                 # Статические файлы
-├── .env                    # Переменные окружения
-├── requirements.txt        # Зависимости Python
-└── README.md              # Документация
+├── config/                      # Конфигурация Django
+│   ├── settings.py              # Основные настройки
+│   ├── urls.py                  # URL маршруты
+│   ├── wsgi.py                  # WSGI приложение
+│   └── asgi.py                  # ASGI приложение
+│
+├── monitor/                     # Основное приложение
+│   ├── models.py                # Models: Project, Endpoint, Measurement
+│   ├── views.py                 # Views: 8+ функций для работы с данными
+│   ├── forms.py                 # Forms: ProjectForm, EndpointForm
+│   ├── urls.py                  # URL маршруты приложения
+│   ├── utils.py                 # Утилиты: расчет статистики, отправка email
+│   ├── admin.py                 # Администраторский интерфейс
+│   │
+│   ├── management/
+│   │   └── commands/
+│   │       └── check_endpoints.py   # Command для проверки API
+│   │
+│   ├── migrations/              # Миграции БД
+│   │
+│   └── templates/               # HTML шаблоны
+│       ├── base.html            # Базовый шаблон
+│       ├── dashboard.html       # Панель управления
+│       ├── project_detail.html  # Детали проекта
+│       ├── endpoint_detail.html # Детали эндпоинта с графиками
+│       └── ...
+│
+├── static/                      # Статические файлы (CSS, JS, images)
+├── .env                         # Переменные окружения (не коммитится)
+├── .gitignore                   # Файлы для игнорирования
+├── requirements.txt             # Зависимости Python
+├── manage.py                    # Django CLI
+├── README.md                    # Этот файл
+└── TZ.md                        # Техническое задание
 ```
 
-## 🔧 Настройка для продакшена
+## 🔧 Развертывание на PythonAnywhere
 
-### Переменные окружения
-```env
-DEBUG=False
-ALLOWED_HOSTS=your-domain.com
-SECRET_KEY=generate-strong-secret-key
-```
+1. Создайте аккаунт на [pythonanywhere.com](https://www.pythonanywhere.com/)
+2. Клонируйте репозиторий в `/home/username/api-monitor-pro`
+3. Создайте виртуальное окружение: `mkvirtualenv --python=/usr/bin/python3.10 api-monitor-pro`
+4. Установите зависимости: `pip install -r requirements.txt`
+5. Создайте файл `.env` с переменными окружения
+6. Выполните миграции: `python manage.py migrate`
+7. Соберите статические файлы: `python manage.py collectstatic`
+8. Создайте WSGI конфиг в PythonAnywhere
+9. Добавьте Scheduled Task для `python manage.py check_endpoints` каждые 5 минут
 
-### База данных
-Рекомендуется использовать PostgreSQL:
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'api_monitor',
-        'USER': 'your_user',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-```
+## 📊 API и Интеграции
 
-### Cron для автоматической проверки
+### Используемые библиотеки для анализа:
+- **Pandas** - расчет SLI/SLO статистики, групповая обработка временных рядов
+- **Plotly** - визуализация графиков (задержка, доступность, ошибки)
+- **Requests** - HTTP запросы к мониторируемым API
+
+### Интеграции:
+- **SMTP Email** - отправка уведомлений при нарушении SLA
+- **External APIs** - поддержка мониторинга любых HTTP API (REST, JSON)
+
+## 🏆 Ключевые особенности реализации
+
+✅ **Многопользовательская система** - Каждый пользователь видит только свои проекты
+✅ **Автоматическая аналитика** - Расчет SLI/SLO метрик с помощью Pandas
+✅ **Визуализация данных** - Интерактивные графики на Plotly
+✅ **Email уведомления** - Автоматические письма при нарушении SLA
+✅ **Django Admin** - Полноценный административный интерфейс с фильтрами и поиском
+✅ **Чистая архитектура** - Разделение на Models, Views, Utils, Templates
+✅ **PEP8** - Соблюдение стандартов Python
+
+## 🐛 Решение проблем
+
+### ModuleNotFoundError при запуске
 ```bash
-# Каждый 5 минут
-*/5 * * * * /path/to/venv/bin/python /path/to/project/manage.py check_endpoints
+# Убедитесь что виртуальное окружение активировано
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+
+# Переустановите зависимости
+pip install -r requirements.txt
 ```
 
-## 🤝 Вклад в проект
+### Ошибка при отправке email
+```python
+# Проверьте .env переменные:
+# - EMAIL_HOST_USER должен быть вашим email
+# - EMAIL_HOST_PASSWORD должен быть app-password (для Gmail)
+# Для Gmail используйте двухфакторную аутентификацию и сгенерируйте app password
+```
 
-1. Fork репозиторий
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Создайте Pull Request
+### БД не обновляется
+```bash
+# Выполните миграции
+python manage.py migrate
+
+# Пересоздайте БД если нужно
+python manage.py flush
+python manage.py migrate
+```
+
+## 📞 Поддержка
+
+- **Email**: voronovmd8@gmail.com
+- **GitHub Issues**: [https://github.com/Mark1sLow/api-monitor-pro/issues](https://github.com/Mark1sLow/api-monitor-pro/issues)
 
 ## 📄 Лицензия
 
 Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для подробностей.
-
-## 📞 Контакты
-
-- **Автор**: Mark1sLow
-- **Email**: voronovmd8@gmail.com
-- **GitHub**: https://github.com/Mark1sLow
 
 ---
 
