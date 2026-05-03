@@ -141,9 +141,3 @@ DATABASES = {
     }
 }
 ```
-
-### Cron для автоматической проверки
-```bash
-# Каждый 5 минут
-*/5 * * * * /path/to/venv/bin/python /path/to/project/manage.py check_endpoints
-```
