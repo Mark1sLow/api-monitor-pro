@@ -155,7 +155,7 @@ python manage.py runserver
 3. Заполните форму:
    - **Method** - HTTP метод
    - **Path** - путь эндпоинта
-   - **SLA Latency (ms)** - максимально допустимое время ответа
+   - **SLA Latency** - максимально допустимое время ответа
    - **SLA Error Rate** - максимально допустимый процент ошибок
 4. Подтвердите добавление
 
@@ -192,7 +192,7 @@ API Monitor Pro полностью поддерживает развертыва
 
 1. **Создание аккаунта**
    - Зарегистрируйтесь на pythonanywhere.com
-   - Выберите бесплатный план (Free) или платный
+   - Выберите бесплатный или платный план
 
 2. **Клонирование репозитория**
    ```bash
@@ -236,12 +236,12 @@ API Monitor Pro полностью поддерживает развертыва
 
 ```
 api-monitor-pro/
-├── config/                    # Конфигурация Django
+├── config/                   # Конфигурация Django
 │   ├── settings.py           # Основные настройки
 │   ├── urls.py               # URL маршруты
 │   ├── wsgi.py               # WSGI конфигурация
 │   └── celery.py             # Celery конфигурация
-├── monitor/                   # Основное приложение
+├── monitor/                  # Основное приложение
 │   ├── models.py             # 8 моделей БД
 │   ├── views.py              # 20+ представлений
 │   ├── urls.py               # URL маршруты
@@ -256,11 +256,11 @@ api-monitor-pro/
 │   ├── management/
 │   │   └── commands/
 │   │       └── check_endpoints.py  # Management command для проверки API
-│   ├── migrations/           # Миграции БД (3 этапа)
-│   └── templates/            # HTML шаблоны (14 файлов)
-├── static/                    # Статические файлы (CSS, JS)
-├── screenshots/               # Скриншоты проекта
-├── requirements.txt           # Зависимости Python
+│   ├── migrations/           # Миграции БД
+│   └── templates/            # HTML шаблоны
+├── static/                   # Статические файлы (CSS, JS)
+├── screenshots/              # Скриншоты проекта
+├── requirements.txt          # Зависимости Python
 ├── manage.py                 # Django управление
 ├── create_admin.py           # Создание суперпользователя
 ├── README.md                 # Этот файл
@@ -308,7 +308,7 @@ api-monitor-pro/
 - **SLA Compliance**: Процент соблюдения SLA за период
 
 ### SLA Tracking
-- **Target SLA**: Целевой процент SLA (рассчитывается на основе sla_error_rate)
+- **Target SLA**: Целевой процент SLA
 - **Actual SLA**: Фактический процент SLA за день
 - **Breach Probability**: ML-прогноз вероятности нарушения
 - **Trend Analysis**: Анализ тренда
