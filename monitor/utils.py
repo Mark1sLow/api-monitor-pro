@@ -62,7 +62,6 @@ def send_sla_breach_notification(endpoint, measurement):
                 fail_silently=True,
             )
     except Exception as e:
-        # Логируем ошибку в продакшене
         print(f"Error sending SLA breach notification: {str(e)}")
 
 def get_sla_statistics(endpoint):

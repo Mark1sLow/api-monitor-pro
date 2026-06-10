@@ -35,3 +35,25 @@ class Measurement(models.Model):
 
     def __str__(self):
         return f"{self.endpoint} | {self.response_time_ms}ms | {self.status_code}"
+
+class Webhook(models.Model):
+    """Конфигурация вебхука для отправки уведомлений"""
+    TRIGGER_TYPES = [
+        ('sla_breach', 'SLA Breach'),
+        ('endpoint_down', 'Endpoint Down'),
+        ('all_errors', 'All Errors'),
+    ]
+    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, help_text="Name for identification")
+    webhook_url = models.URLField(help_text="Webhook URL for notifications")
+    trigger_type = models.CharField(max_length=20, choices=TRIGGER_TYPES, default='sla_breach')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('project', 'webhook_url')
+    
+    def __str__(self):
+        return f"{self.name} - {self.project}"
