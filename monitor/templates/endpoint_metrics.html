@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Metrics - {{ endpoint }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Metrics - {{ endpoint.method }} {{ endpoint.path }}</h1>
+            <p class="text-muted">Project: <a href="{% url 'project_detail' endpoint.project.id %}">{{ endpoint.project.name }}</a></p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Выбор периода -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="get" class="d-flex gap-2">
+                <select name="days" class="form-select" style="max-width: 200px;">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="14" {% if days == 14 %}selected{% endif %}>Last 14 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Update</button>
+                <a href="{% url 'export_measurements_csv' endpoint.id %}?days={{ days }}" class="btn btn-secondary">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+            </form>
+        </div>
+    </div>
+
+    {% if metrics %}
+    <!-- Карточки с основными метриками -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Avg Response Time</h6>
+                    <h2 class="text-primary">{{ metrics.response_time_avg|floatformat:2 }}ms</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">P95 Response Time</h6>
+                    <h2 class="text-info">{{ metrics.response_time_p95|floatformat:2 }}ms</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">P99 Response Time</h6>
+                    <h2 class="text-warning">{{ metrics.response_time_p99|floatformat:2 }}ms</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">SLA Compliance</h6>
+                    <h2 class="text-success">{{ metrics.sla_compliance|floatformat:2 }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подробные метрики -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Response Time Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Minimum</td>
+                            <td><strong>{{ metrics.response_time_min|floatformat:2 }}ms</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Maximum</td>
+                            <td><strong>{{ metrics.response_time_max|floatformat:2 }}ms</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Average (Mean)</td>
+                            <td><strong>{{ metrics.response_time_avg|floatformat:2 }}ms</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P50 (Median)</td>
+                            <td><strong>{{ metrics.response_time_p50|floatformat:2 }}ms</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P95</td>
+                            <td><strong>{{ metrics.response_time_p95|floatformat:2 }}ms</strong></td>
+                        </tr>
+                        <tr>
+                            <td>P99</td>
+                            <td><strong>{{ metrics.response_time_p99|floatformat:2 }}ms</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Reliability Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Total Requests</td>
+                            <td><strong>{{ metrics.total_requests }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Successful</td>
+                            <td><strong class="text-success">{{ metrics.successful_requests }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Failed</td>
+                            <td><strong class="text-danger">{{ metrics.failed_requests }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Error Rate</td>
+                            <td><strong>{{ metrics.error_rate|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>SLA Breaches</td>
+                            <td><strong class="text-warning">{{ metrics.sla_breaches }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>SLA Compliance</td>
+                            <td><strong class="text-success">{{ metrics.sla_compliance|floatformat:2 }}%</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>HTTP Status Code Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>2xx (Success)</td>
+                            <td><span class="badge bg-success">{{ metrics.status_2xx }}</span></td>
+                        </tr>
+                        <tr>
+                            <td>3xx (Redirect)</td>
+                            <td><span class="badge bg-info">{{ metrics.status_3xx }}</span></td>
+                        </tr>
+                        <tr>
+                            <td>4xx (Client Error)</td>
+                            <td><span class="badge bg-warning">{{ metrics.status_4xx }}</span></td>
+                        </tr>
+                        <tr>
+                            <td>5xx (Server Error)</td>
+                            <td><span class="badge bg-danger">{{ metrics.status_5xx }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>SLA Statistics (30 days)</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Target SLA</td>
+                            <td><strong>{{ sla_stats.compliance_rate|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Compliant Days</td>
+                            <td><strong class="text-success">{{ sla_stats.days_compliant }}/{{ sla_stats.days_total }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Breached Days</td>
+                            <td><strong class="text-danger">{{ sla_stats.days_breached }}/{{ sla_stats.days_total }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Avg SLA</td>
+                            <td><strong>{{ sla_stats.avg_sla|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Min SLA</td>
+                            <td>{{ sla_stats.min_sla|floatformat:2 }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Max SLA</td>
+                            <td>{{ sla_stats.max_sla|floatformat:2 }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if distribution_plot %}
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Response Time Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {{ distribution_plot|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if sla_trend_plot %}
+        <div class="col-md-12">
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>SLA Trend (30 days)</h5>
+                </div>
+                <div class="card-body">
+                    {{ sla_trend_plot|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{% url 'endpoint_detail' endpoint.id %}" class="btn btn-secondary">Back to Endpoint</a>
+            <a href="{% url 'sla_forecast' endpoint.id %}" class="btn btn-info">View SLA Forecast</a>
+            <a href="{% url 'endpoint_sla_history' endpoint.id %}" class="btn btn-info">View SLA History</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">No metrics available for this period. Please check back later.</div>
+    {% endif %}
+</div>
+{% endblock %}

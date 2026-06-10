@@ -1,22 +1,18 @@
 Django==4.2.16
 pandas==2.2.2
+numpy==2.0.0
 plotly==5.20.0
 requests==2.31.0
 python-decouple==3.8
 django-crispy-forms==2.2
 crispy-bootstrap5==0.7
-gunicorn==22.0.0
 whitenoise==6.7.0
-
-# Асинхронные задачи
+APScheduler==3.10.4
+reportlab==4.0.9
+scikit-learn>=1.5.0
 celery==5.3.6
 redis==5.0.1
 django-redis==5.4.0
-
-# REST API
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
 djangorestframework-simplejwt==5.5.1
-
-# Database (для продакшена, на разработку можно пропустить)
-# psycopg2-binary==2.9.9

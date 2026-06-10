@@ -1,70 +1,72 @@
 """
-URL маршруты для приложения API Monitor Pro
+URL маршруты для веб-интерфейса приложения API Monitor Pro
 
-Этот модуль определяет все маршруты для:
-1. REST API (для программного доступа через JSON)
-   - /api/projects/       → ProjectViewSet (CRUD операции)
-   - /api/endpoints/      → EndpointViewSet (CRUD операции)
-   - /api/measurements/   → MeasurementViewSet (только чтение)
-   - /api/webhooks/       → WebhookViewSet (CRUD операции)
+Маршруты:
+- /register/           → регистрация новых пользователей
+- /login/              → вход в систему
+- /logout/             → выход из системы
+- /dashboard/          → главная панель управления
+- /project/new/        → создание нового проекта
+- /project/<id>/       → просмотр деталей проекта
+- /endpoint/<id>/      → просмотр деталей эндпоинта
+- /endpoint/<id>/delete/ → удаление эндпоинта
+- /alerts/             → просмотр истории оповещений
+- /alerts/<id>/read/   → отметить оповещение как прочитанное
+- /schedule/           → просмотр и управление расписаниями
+- /schedule/<id>/      → редактирование расписания
 
-2. Веб-интерфейса (для браузера)
-   - /register/           → регистрация новых пользователей
-   - /login/              → вход в систему
-   - /logout/             → выход из системы
-   - /dashboard/          → главная панель управления
-   - /project/new/        → создание нового проекта
-   - /project/<id>/       → просмотр деталей проекта
-   - /endpoint/<id>/      → просмотр деталей эндпоинта
-   - /endpoint/<id>/delete/ → удаление эндпоинта
-
-API запросы требуют JWT токены, веб-интерфейс использует сессии.
-Все операции проверяют права доступа пользователя.
-
-Автор: API Monitor Pro Team
-Версия: 1.0
+Все операции защищены @login_required и проверяют права доступа пользователя.
 """
 
-from django.urls import path, include
-from django.views.generic import RedirectView
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
-from .api import ProjectViewSet, EndpointViewSet, MeasurementViewSet, WebhookViewSet
-
-# ============ REST API Router ============
-# Автоматически создаёт маршруты для CRUD операций
-router = DefaultRouter()
-router.register(r'api/projects', ProjectViewSet, basename='project')
-router.register(r'api/endpoints', EndpointViewSet, basename='endpoint')
-router.register(r'api/measurements', MeasurementViewSet, basename='measurement')
-router.register(r'api/webhooks', WebhookViewSet, basename='webhook')
 
 urlpatterns = [
-    # ============ API маршруты ============
-    # Все API маршруты из router
-    path('', include(router.urls)),
-    
-    # ============ Аутентификация ============
-    # Регистрация новых пользователей
+    # Аутентификация
     path('register/', views.register, name='register'),
-    # Вход в систему
     path('login/', views.login_view, name='login'),
-    # Выход из системы
     path('logout/', views.logout_view, name='logout'),
     
-    # ============ Веб-интерфейс ============
-    # Главная панель управления (защищена @login_required)
+    # Главные страницы
     path('dashboard/', views.dashboard, name='dashboard'),
-    # Главная страница (редирект для авторизованных пользователей)
     path('', views.home, name='home'),
-    # Создание нового проекта (защищено @login_required)
+    
+    # Управление проектами
     path('project/new/', views.create_project, name='create_project'),
-    # Просмотр проекта (защищено @login_required)
     path('project/<int:pk>/', views.project_detail, name='project_detail'),
-    # Просмотр эндпоинта с графиками (защищено @login_required)
-    path('endpoint/<int:pk>/', views.endpoint_detail, name='endpoint_detail'),
-    # Создание нового эндпоинта в проекте (защищено @login_required)
+    
+    # Управление эндпоинтами
     path('project/<int:project_pk>/endpoint/new/', views.create_endpoint, name='create_endpoint'),
-    # Удаление эндпоинта (защищено @login_required)
+    path('endpoint/<int:pk>/', views.endpoint_detail, name='endpoint_detail'),
     path('endpoint/<int:pk>/delete/', views.endpoint_delete, name='endpoint_delete'),
+    
+    # История оповещений
+    path('alerts/', views.alerts_list, name='alerts_list'),
+    path('alerts/<int:pk>/read/', views.alert_mark_read, name='alert_mark_read'),
+    
+    # Управление расписаниями
+    path('schedule/', views.schedule_list, name='schedule_list'),
+    path('schedule/<int:pk>/', views.schedule_update, name='schedule_update'),
+    
+    # Расширенные метрики
+    path('endpoint/<int:pk>/metrics/', views.endpoint_metrics, name='endpoint_metrics'),
+    path('project/<int:pk>/metrics/', views.project_metrics, name='project_metrics'),
+    
+    # SLA Трекинг
+    path('sla/dashboard/', views.sla_dashboard, name='sla_dashboard'),
+    path('endpoint/<int:pk>/sla-history/', views.endpoint_sla_history, name='endpoint_sla_history'),
+    path('endpoint/<int:pk>/sla-forecast/', views.predict_sla_breach, name='sla_forecast'),
+    
+    # Отчеты
+    path('reports/', views.reports_list, name='reports_list'),
+    path('project/<int:project_id>/generate-report/', views.generate_report, name='generate_report'),
+    
+    # CSV Экспорт
+    path('endpoint/<int:pk>/export/measurements/', views.export_measurements_csv, name='export_measurements_csv'),
+    path('project/<int:project_id>/export/metrics/', views.export_metrics_csv, name='export_metrics_csv'),
+    path('endpoint/<int:pk>/export/sla/', views.export_sla_csv, name='export_sla_csv'),
+    
+    # API для графиков
+    path('api/endpoint/<int:pk>/metrics/', views.api_endpoint_metrics, name='api_endpoint_metrics'),
+    path('api/endpoint/<int:pk>/sla-forecast/', views.api_sla_forecast, name='api_sla_forecast'),
 ]

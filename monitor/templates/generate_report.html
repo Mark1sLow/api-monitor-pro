@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Generate Report - {{ project }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Generate Report</h1>
+            <p class="text-muted">Project: {{ project.name }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Report Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="report_type" class="form-label">Report Type</label>
+                            <select name="report_type" id="report_type" class="form-select" required>
+                                <option value="">-- Select --</option>
+                                <option value="daily">Daily Report (Last 24 hours)</option>
+                                <option value="weekly">Weekly Report (Last 7 days)</option>
+                                <option value="monthly">Monthly Report (Last 30 days)</option>
+                            </select>
+                            <small class="text-muted">Select the reporting period</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="format" class="form-label">Export Format</label>
+                            <div class="btn-group d-block w-100" role="group">
+                                <input type="radio" class="btn-check" name="format" id="format_pdf" value="pdf" checked>
+                                <label class="btn btn-outline-primary w-100" for="format_pdf">
+                                    <i class="fas fa-file-pdf"></i> PDF (with charts & tables)
+                                </label>
+
+                                <input type="radio" class="btn-check" name="format" id="format_html" value="html">
+                                <label class="btn btn-outline-primary w-100" for="format_html">
+                                    <i class="fas fa-file-html5"></i> HTML (view in browser)
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <strong>PDF:</strong> Recommended for sharing and printing<br>
+                                <strong>HTML:</strong> Best for viewing online
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Report Contents</h6>
+                            <ul class="mb-0">
+                                <li>Project summary and statistics</li>
+                                <li>Endpoints overview and metrics</li>
+                                <li>Performance charts and graphs</li>
+                                <li>SLA compliance analysis</li>
+                                <li>Recommendations</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-lg btn-primary">
+                                <i class="fas fa-download"></i> Generate & Download Report
+                            </button>
+                            <a href="{% url 'reports_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Name</strong></td>
+                            <td>{{ project.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>URL</strong></td>
+                            <td><code>{{ project.url }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Endpoints</strong></td>
+                            <td>{{ project.endpoint_set.count }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created</strong></td>
+                            <td>{{ project.created_at|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from monitor.models import Endpoint, Measurement
+from monitor.models import Endpoint, Measurement, Alert
 from monitor.utils import send_sla_breach_notification
 import requests
 from datetime import datetime
@@ -8,10 +8,24 @@ from datetime import datetime
 class Command(BaseCommand):
     help = 'Проверяет все эндпоинты и сохраняет результаты'
 
+    def add_arguments(self, parser):
+        parser.add_argument('--project', type=int, help='Check specific project ID')
+        parser.add_argument('--endpoint', type=int, help='Check specific endpoint ID')
+
     def handle(self, *args, **options):
-        endpoints = Endpoint.objects.all()
+        project_id = options.get('project')
+        endpoint_id = options.get('endpoint')
+        
+        if endpoint_id:
+            endpoints = Endpoint.objects.filter(id=endpoint_id)
+        elif project_id:
+            endpoints = Endpoint.objects.filter(project_id=project_id)
+        else:
+            endpoints = Endpoint.objects.all()
+        
         checked = 0
         errors = 0
+        alerts = 0
         
         for endpoint in endpoints:
             try:
@@ -23,7 +37,7 @@ class Command(BaseCommand):
                     elapsed = (timezone.now() - start).total_seconds() * 1000  # ms
                     is_error = resp.status_code >= 400
                 except requests.Timeout:
-                    elapsed = 10000  # timeout
+                    elapsed = 10000
                     is_error = True
                     resp = None
                 except Exception as e:
@@ -47,8 +61,26 @@ class Command(BaseCommand):
                     sla_breached=sla_breached
                 )
                 
+                # Логирование в Alert
                 if sla_breached:
+                    alert_type = 'endpoint_down' if is_error else 'sla_breach'
+                    message = f"{endpoint.method} {endpoint.path}: "
+                    
+                    if is_error:
+                        message += f"Status {status_code}"
+                    else:
+                        message += f"Response time {elapsed}ms (limit: {endpoint.sla_latency_ms}ms)"
+                    
+                    Alert.objects.create(
+                        project=endpoint.project,
+                        endpoint=endpoint,
+                        alert_type=alert_type,
+                        measurement=measurement,
+                        message=message
+                    )
+                    
                     send_sla_breach_notification(endpoint, measurement)
+                    alerts += 1
                 
                 checked += 1
                 self.stdout.write(
@@ -61,5 +93,5 @@ class Command(BaseCommand):
                 )
         
         self.stdout.write(
-            self.style.SUCCESS(f'\nПроверка завершена: {checked} успешно, {errors} ошибок')
+            self.style.SUCCESS(f'\nПроверка завершена: {checked} успешно, {errors} ошибок, {alerts} оповещений')
         )

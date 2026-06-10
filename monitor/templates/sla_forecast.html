@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SLA Forecast - {{ endpoint }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>SLA Forecast</h1>
+            <p class="text-muted">{{ endpoint.method }} {{ endpoint.path }} @ {{ endpoint.project.name }}</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card {% if prediction.predicted_breach %}border-danger{% else %}border-success{% endif %}">
+                <div class="card-header {% if prediction.predicted_breach %}bg-danger{% else %}bg-success{% endif %} text-white">
+                    <h5 class="mb-0">
+                        {% if prediction.predicted_breach %}
+                        ⚠️ Breach Predicted
+                        {% else %}
+                        ✓ No Breach Expected
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Breach Probability</h6>
+                            <h3 class="text-warning">{{ prediction.breach_probability|floatformat:1 }}%</h3>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Confidence Level</h6>
+                            <h3 class="text-info">{{ prediction.confidence|floatformat:1 }}%</h3>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Forecast Period:</strong> Next {{ prediction.days_ahead }} day(s)<br>
+                        <strong>Predicted SLA:</strong> {{ prediction.predicted_sla|floatformat:2 }}%<br>
+                        <strong>Target SLA:</strong> {{ prediction.target_sla|floatformat:2 }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Trend Analysis</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if prediction.trend == 'improving' %}
+                    <h1 class="text-success">📈</h1>
+                    <h4 class="text-success">Improving</h4>
+                    <p class="text-muted">Performance is getting better</p>
+                    {% elif prediction.trend == 'deteriorating' %}
+                    <h1 class="text-danger">📉</h1>
+                    <h4 class="text-danger">Deteriorating</h4>
+                    <p class="text-muted">Performance is getting worse</p>
+                    {% else %}
+                    <h1 class="text-secondary">→</h1>
+                    <h4 class="text-secondary">Stable</h4>
+                    <p class="text-muted">Performance is stable</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Forecast Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Predicted Breach</td>
+                            <td>
+                                {% if prediction.predicted_breach %}
+                                <span class="badge bg-danger">YES</span>
+                                {% else %}
+                                <span class="badge bg-success">NO</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Breach Probability</td>
+                            <td><strong>{{ prediction.breach_probability|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Confidence</td>
+                            <td><strong>{{ prediction.confidence|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Trend</td>
+                            <td>
+                                {% if prediction.trend == 'improving' %}
+                                <span class="badge bg-success">Improving ↑</span>
+                                {% elif prediction.trend == 'deteriorating' %}
+                                <span class="badge bg-danger">Deteriorating ↓</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Stable →</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Recent Breaches (7 days)</td>
+                            <td><strong class="text-warning">{{ prediction.recent_breaches }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>SLA Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Target SLA</td>
+                            <td><strong>{{ prediction.target_sla|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Predicted SLA</td>
+                            <td><strong>{{ prediction.predicted_sla|floatformat:2 }}%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>SLA Difference</td>
+                            <td>
+                                <strong class="{% if prediction.predicted_sla >= prediction.target_sla %}text-success{% else %}text-danger{% endif %}">
+                                    {{ prediction.predicted_sla|add:prediction.target_sla|floatformat:2 }}%
+                                </strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Max Latency</td>
+                            <td>{{ endpoint.sla_latency_ms }}ms</td>
+                        </tr>
+                        <tr>
+                            <td>Max Error Rate</td>
+                            <td>{{ endpoint.sla_error_rate|floatformat:2 }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if anomalies %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">⚠️ Detected Anomalies</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">The following dates had unusual SLA values:</p>
+                    <div class="list-group">
+                        {% for anomaly in anomalies %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ anomaly.date }}</h6>
+                                <span class="badge bg-warning">Deviation: {{ anomaly.deviation|floatformat:2 }}%</span>
+                            </div>
+                            <p class="mb-0">SLA: <strong>{{ anomaly.sla|floatformat:2 }}%</strong></p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% if prediction.predicted_breach %}
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            <strong>High Risk:</strong> Based on current trends, this endpoint is likely to breach SLA in the next {{ prediction.days_ahead }} day(s).
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-tools text-info"></i>
+                            <strong>Action Required:</strong> Consider investigating performance issues and implementing optimizations.
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-bell text-primary"></i>
+                            <strong>Set Alerts:</strong> Configure alerts for early warning when SLA is about to breach.
+                        </li>
+                        {% endif %}
+
+                        {% if prediction.trend == 'improving' %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-up text-success"></i>
+                            <strong>Good News:</strong> Performance is improving! Continue monitoring the current optimizations.
+                        </li>
+                        {% elif prediction.trend == 'deteriorating' %}
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-down text-danger"></i>
+                            <strong>Warning:</strong> Performance is deteriorating. Investigate potential issues immediately.
+                        </li>
+                        {% endif %}
+
+                        <li class="mb-2">
+                            <i class="fas fa-chart-line text-secondary"></i>
+                            <strong>Historical Data:</strong> Review SLA history to identify patterns and seasonal variations.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{% url 'endpoint_detail' endpoint.id %}" class="btn btn-secondary">Back to Endpoint</a>
+            <a href="{% url 'endpoint_metrics' endpoint.id %}" class="btn btn-info">View Metrics</a>
+            <a href="{% url 'endpoint_sla_history' endpoint.id %}" class="btn btn-info">View SLA History</a>
+            <a href="{% url 'sla_dashboard' %}" class="btn btn-outline-primary">Back to SLA Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

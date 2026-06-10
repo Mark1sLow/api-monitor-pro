@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SLA Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>SLA Dashboard</h1>
+            <p class="text-muted">Monitor SLA compliance and predict breaches across all your projects</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Total Projects</h6>
+                    <h2 class="text-primary">{{ projects.count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Endpoints at Risk</h6>
+                    <h2 class="text-warning">{{ at_risk_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">High Risk</h6>
+                    <h2 class="text-danger">
+                        {% for project_id, data in forecast_data.items %}
+                            {% if data.high_risk_endpoints %}{{ data.high_risk_endpoints|length }}{% endif %}
+                        {% endfor %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Avg Breach Probability</h6>
+                    <h2 class="text-info">
+                        {% with avg_prob=forecast_data|dictsort|first %}
+                            {% if avg_prob %}
+                                {{ avg_prob.prediction.breach_probability|floatformat:1 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        {% endwith %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for project_id, forecast_data_item in forecast_data.items %}
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>
+                        {% for project in projects %}
+                            {% if project.id == project_id %}
+                                <a href="{% url 'project_detail' project.id %}">{{ project.name }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ forecast_data_item.summary }}</p>
+                    
+                    {% if forecast_data_item.high_risk_endpoints %}
+                    <div class="alert alert-warning">
+                        <h6>⚠️ High Risk Endpoints:</h6>
+                        <ul class="mb-0">
+                            {% for endpoint_data in forecast_data_item.high_risk_endpoints %}
+                            <li>
+                                {{ endpoint_data.endpoint.method }} {{ endpoint_data.endpoint.path }}
+                                <span class="badge bg-danger">{{ endpoint_data.prediction.breach_probability|floatformat:1 }}%</span>
+                                <a href="{% url 'sla_forecast' endpoint_data.endpoint.id %}" class="btn btn-sm btn-outline-danger">View</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Endpoint</th>
+                                    <th>Predicted Breach</th>
+                                    <th>Probability</th>
+                                    <th>Predicted SLA</th>
+                                    <th>Trend</th>
+                                    <th>Confidence</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in forecast_data_item.predictions %}
+                                <tr>
+                                    <td>
+                                        <small>{{ pred.endpoint.method }} {{ pred.endpoint.path }}</small>
+                                    </td>
+                                    <td>
+                                        {% if pred.prediction.predicted_breach %}
+                                        <span class="badge bg-danger">YES</span>
+                                        {% else %}
+                                        <span class="badge bg-success">NO</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ pred.prediction.breach_probability|floatformat:1 }}%</strong>
+                                    </td>
+                                    <td>
+                                        {% if pred.prediction.predicted_sla %}
+                                            {{ pred.prediction.predicted_sla|floatformat:2 }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if pred.prediction.trend == 'improving' %}
+                                        <span class="badge bg-success">↑ Improving</span>
+                                        {% elif pred.prediction.trend == 'deteriorating' %}
+                                        <span class="badge bg-danger">↓ Deteriorating</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">→ Stable</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ pred.prediction.confidence|floatformat:1 }}%
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'sla_forecast' pred.endpoint.id %}" class="btn btn-sm btn-outline-primary">Details</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if at_risk_endpoints %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5>🚨 Top Endpoints at Risk</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for endpoint in at_risk_endpoints %}
+                        <a href="{% url 'endpoint_detail' endpoint.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ endpoint.method }} {{ endpoint.path }}</h6>
+                                <small>{{ endpoint.project.name }}</small>
+                            </div>
+                            <p class="mb-1">SLA Latency: {{ endpoint.sla_latency_ms }}ms | Error Rate: {{ endpoint.sla_error_rate|floatformat:2 }}%</p>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock %}
