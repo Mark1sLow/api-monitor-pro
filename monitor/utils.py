@@ -1,34 +1,52 @@
-import pandas as pd
+import numpy as np
 from .models import Measurement
 from django.core.mail import send_mail
 from django.conf import settings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from collections import defaultdict
 
 def calculate_sli_stats(endpoint_id, days=7):
-    """Возвращает DataFrame с SLI за последние N дней"""
+    """Возвращает список дней с SLI метриками за последние N дней"""
     qs = Measurement.objects.filter(
         endpoint_id=endpoint_id,
         timestamp__gte=datetime.now() - timedelta(days=days)
     ).values('timestamp', 'response_time_ms', 'is_error')
     
     if not qs:
-        return pd.DataFrame(columns=['timestamp', 'latency_mean', 'error_rate', 'availability'])
+        return []
 
-    df = pd.DataFrame(qs)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df = df.set_index('timestamp').sort_index()
-    df.rename(columns={'response_time_ms': 'latency', 'is_error': 'error'}, inplace=True)
-    
     # Группировка по дням
-    daily = df.resample('D').agg({
-        'latency': ['mean', 'count'],
-        'error': ['sum', 'count']
-    })
-    daily.columns = ['latency_mean', 'latency_count', 'error_sum', 'error_count']
-    daily['error_rate'] = daily['error_sum'] / daily['error_count']
-    daily['availability'] = 1 - daily['error_rate']
+    daily_data = defaultdict(lambda: {'latencies': [], 'errors': []})
     
-    return daily.reset_index()
+    for measurement in qs:
+        day = measurement['timestamp'].date()
+        daily_data[day]['latencies'].append(measurement['response_time_ms'])
+        daily_data[day]['errors'].append(1 if measurement['is_error'] else 0)
+    
+    # Формирование результата
+    result = []
+    for day in sorted(daily_data.keys()):
+        data = daily_data[day]
+        latencies = data['latencies']
+        errors = data['errors']
+        
+        latency_mean = float(np.mean(latencies)) if latencies else 0
+        error_count = sum(errors)
+        total_count = len(errors)
+        error_rate = float(error_count / total_count) if total_count > 0 else 0
+        availability = 1 - error_rate
+        
+        result.append({
+            'timestamp': datetime.combine(day, datetime.min.time()),
+            'latency_mean': latency_mean,
+            'latency_count': len(latencies),
+            'error_sum': error_count,
+            'error_count': total_count,
+            'error_rate': error_rate,
+            'availability': availability,
+        })
+    
+    return result
 
 def send_sla_breach_notification(endpoint, measurement):
     """Отправляет уведомление о нарушении SLA на email"""

@@ -1,15 +1,24 @@
 """
-Предсказание нарушений SLA с использованием простого машинного обучения
+Предсказание нарушений SLA с использованием простого машинного обучения (на базе numpy)
 """
 import numpy as np
 from datetime import datetime, timedelta
 from django.utils import timezone
-from sklearn.linear_model import LinearRegression
 from .models import SLATracking, Endpoint
 
 
 class SLAForecaster:
     """Класс для прогнозирования нарушений SLA"""
+    
+    @staticmethod
+    def _linear_regression_numpy(x, y):
+        """
+        Простая линейная регрессия используя numpy
+        Возвращает коэффициенты [slope, intercept]
+        """
+        # Используем numpy.polyfit для линейной регрессии (степень 1)
+        coefficients = np.polyfit(x, y, 1)
+        return coefficients
     
     @staticmethod
     def predict_breach(endpoint, forecast_days=1):
@@ -56,16 +65,19 @@ class SLAForecaster:
         # Проверить тренд
         sla_values = [d['sla'] for d in data]
         
-        # Простая линейная регрессия для тренда
-        X = np.array([i for i in range(len(sla_values))]).reshape(-1, 1)
+        # Линейная регрессия для тренда используя numpy
+        X = np.array([i for i in range(len(sla_values))])
         y = np.array(sla_values)
         
-        model = LinearRegression()
-        model.fit(X, y)
+        # Получить коэффициенты линейной регрессии
+        # coefficients[0] = slope (наклон), coefficients[1] = intercept
+        coefficients = SLAForecaster._linear_regression_numpy(X, y)
+        slope = coefficients[0]
+        intercept = coefficients[1]
         
         # Предсказать SLA на forecast_days дней вперед
-        future_x = np.array([len(sla_values) + forecast_days - 1]).reshape(-1, 1)
-        predicted_sla = float(model.predict(future_x)[0])
+        future_x = len(sla_values) + forecast_days - 1
+        predicted_sla = float(slope * future_x + intercept)
         
         # Ограничить прогноз в диапазон
         predicted_sla = max(0, min(100, predicted_sla))
@@ -79,9 +91,9 @@ class SLAForecaster:
         # Рассчитать вероятность на основе исторических данных и тренда
         historical_breach_rate = sum(1 for d in data if d['breached']) / len(data)
         
-        if model.coef_[0] < 0:  # Тренд ухудшается
+        if slope < 0:  # Тренд ухудшается
             breach_probability = min(0.99, historical_breach_rate + 0.2)
-        elif model.coef_[0] > 0:  # Тренд улучшается
+        elif slope > 0:  # Тренд улучшается
             breach_probability = max(0.01, historical_breach_rate - 0.2)
         else:
             breach_probability = historical_breach_rate
@@ -96,7 +108,7 @@ class SLAForecaster:
             'predicted_sla': predicted_sla,
             'target_sla': target_sla,
             'confidence': float(confidence),
-            'trend': 'improving' if model.coef_[0] > 0 else ('stable' if abs(model.coef_[0]) < 0.1 else 'deteriorating'),
+            'trend': 'improving' if slope > 0 else ('stable' if abs(slope) < 0.1 else 'deteriorating'),
             'days_ahead': forecast_days,
             'recent_breaches': sum(1 for d in data[-7:] if d['breached']),
         }
