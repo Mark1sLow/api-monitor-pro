@@ -20,8 +20,6 @@ API Monitor Pro — это комплексное решение для реал
 ## Роли пользователей
 
 - **Зарегистрированный пользователь**: Создание/управление проектами, эндпоинтами, просмотр аналитики, генерация отчетов, экспорт данных
-- **Администратор**: Полное управление пользователями, проектами, глобальная аналитика и системные отчеты
-
 
 ## Архитектура системы
 
@@ -111,22 +109,7 @@ EMAIL_PORT=587
 # DATABASE_URL=postgresql://user:password@localhost:5432/api_monitor
 ```
 
-### 5. Выполнение миграций БД
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### 6. Создание суперпользователя
-```bash
-# Интерактивное создание
-python manage.py createsuperuser
-
-# ИЛИ используйте готовый скрипт
-python create_admin.py
-```
-
-### 7. Запуск локального сервера
+### 5. Запуск локального сервера
 ```bash
 python manage.py runserver
 ```
@@ -220,15 +203,8 @@ API Monitor Pro полностью поддерживает развертыва
    - Используйте встроенный WSGI конфигуратор PythonAnywhere
    - Укажите путь к wsgi.py файлу
 
-7. **Настройка Scheduled Tasks**
-   - Добавьте задачу для периодической проверки эндпоинтов:
-   ```bash
-   python manage.py check_endpoints
-   ```
-   - Установите интервал: каждые 5 минут
-
-### Ссылка на боевой сервер
-**Рабочий проект:** [https://api-monitor.pythonanywhere.com](https://api-monitor.pythonanywhere.com)
+### Ссылка на сервис
+**Рабочий проект:** [https://markis.pythonanywhere.com]
 
 ---
 
@@ -259,10 +235,8 @@ api-monitor-pro/
 │   ├── migrations/           # Миграции БД
 │   └── templates/            # HTML шаблоны
 ├── static/                   # Статические файлы (CSS, JS)
-├── screenshots/              # Скриншоты проекта
 ├── requirements.txt          # Зависимости Python
 ├── manage.py                 # Django управление
-├── create_admin.py           # Создание суперпользователя
 ├── README.md                 # Этот файл
 ├── TZ.md                     # Техническое задание
 └── db.sqlite3                # SQLite база данных
@@ -270,10 +244,10 @@ api-monitor-pro/
 
 ---
 
-## API Endpoints (JSON REST API)
+## API Endpoints
 
 ### Аутентификация
-- `POST /api/token/` - Получить JWT токен
+- `POST /api/token/` - Получить токен
 - `POST /api/token/refresh/` - Обновить токен
 
 ### Метрики
