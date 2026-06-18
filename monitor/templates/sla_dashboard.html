@@ -1,22 +1,19 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block title %}SLA Dashboard{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-12">
             <h1>SLA Dashboard</h1>
-            <p class="text-muted">Monitor SLA compliance and predict breaches across all your projects</p>
+            <p class="text-muted">Контролируйте соблюдение SLA и прогнозируйте нарушения в ваших проектах</p>
         </div>
     </div>
-
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Total Projects</h6>
+                    <h6 class="card-title">Количество проектов</h6>
                     <h2 class="text-primary">{{ projects.count }}</h2>
                 </div>
             </div>
@@ -24,7 +21,7 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Endpoints at Risk</h6>
+                    <h6 class="card-title">Рискованные эндпоинты</h6>
                     <h2 class="text-warning">{{ at_risk_count }}</h2>
                 </div>
             </div>
@@ -32,11 +29,15 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">High Risk</h6>
+                    <h6 class="card-title">Высокий риск</h6>
                     <h2 class="text-danger">
-                        {% for project_id, data in forecast_data.items %}
-                            {% if data.high_risk_endpoints %}{{ data.high_risk_endpoints|length }}{% endif %}
-                        {% endfor %}
+                        {% with total_high_risk=0 %}
+                            {% for project_id, data in forecast_data.items %}
+                                {% if data.high_risk_endpoints %}
+                                    {{ data.high_risk_endpoints|length }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
                     </h2>
                 </div>
             </div>
@@ -44,16 +45,8 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Avg Breach Probability</h6>
-                    <h2 class="text-info">
-                        {% with avg_prob=forecast_data|dictsort|first %}
-                            {% if avg_prob %}
-                                {{ avg_prob.prediction.breach_probability|floatformat:1 }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        {% endwith %}
-                    </h2>
+                    <h6 class="card-title">Средняя вероятность нарушения</h6>
+                    <h2 class="text-info">0%</h2>
                 </div>
             </div>
         </div>

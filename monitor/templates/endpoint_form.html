@@ -7,14 +7,14 @@
   <div class="col-md-6">
     <h2 class="mb-2">Добавить эндпоинт</h2>
     <p class="text-muted mb-4">Проект: <strong>{{ project.name }}</strong></p>
-    
+
     <form method="post" class="border p-4 rounded bg-light">
       {% csrf_token %}
       {{ form|crispy }}
       <button type="submit" class="btn btn-primary w-100">Добавить эндпоинт</button>
     </form>
-    
-    <a href="{% url 'project_detail' project.pk %}" class="btn btn-link mt-3">← Вернуться к проекту</a>
+
+    <a href="{% url 'project_detail' project.pk %}" class="btn btn-link mt-3">Вернуться к проекту</a>
   </div>
 </div>
 {% endblock %}

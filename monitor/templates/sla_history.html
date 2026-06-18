@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}SLA History - {{ endpoint }}{% endblock %}
+{% block title %}История SLA - {{ endpoint }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-12">
-            <h1>SLA History</h1>
+            <h1>История SLA</h1>
             <p class="text-muted">{{ endpoint.method }} {{ endpoint.path }} @ {{ endpoint.project.name }}</p>
         </div>
     </div>
@@ -16,14 +16,14 @@
         <div class="col-md-12">
             <form method="get" class="d-flex gap-2">
                 <select name="days" class="form-select" style="max-width: 200px;">
-                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-                    <option value="14" {% if days == 14 %}selected{% endif %}>Last 14 days</option>
-                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Последние 7 дней</option>
+                    <option value="14" {% if days == 14 %}selected{% endif %}>Последние 14 дней</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Последние 30 дней</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Последние 90 дней</option>
                 </select>
-                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="submit" class="btn btn-primary">Обновить</button>
                 <a href="{% url 'export_sla_csv' endpoint.id %}?days={{ days }}" class="btn btn-secondary">
-                    <i class="fas fa-download"></i> Export CSV
+                    <i class="fas fa-download"></i> Экспорт CSV
                 </a>
             </form>
         </div>
@@ -33,7 +33,7 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Compliant Days</h6>
+                    <h6 class="card-title">Соответствующие дни</h6>
                     <h2 class="text-success">{{ stats.days_compliant }}/{{ stats.days_total }}</h2>
                 </div>
             </div>
@@ -41,7 +41,7 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Breached Days</h6>
+                    <h6 class="card-title">Нарушенные дни</h6>
                     <h2 class="text-danger">{{ stats.days_breached }}/{{ stats.days_total }}</h2>
                 </div>
             </div>
@@ -49,7 +49,7 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Compliance Rate</h6>
+                    <h6 class="card-title">Процент соответствия</h6>
                     <h2 class="text-primary">{{ stats.compliance_rate|floatformat:2 }}%</h2>
                 </div>
             </div>
@@ -57,7 +57,7 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Avg SLA</h6>
+                    <h6 class="card-title">Средний SLA</h6>
                     <h2 class="text-info">{{ stats.avg_sla|floatformat:2 }}%</h2>
                 </div>
             </div>
@@ -69,7 +69,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>SLA Trend</h5>
+                    <h5>Тренд SLA</h5>
                 </div>
                 <div class="card-body">
                     {{ sla_plot|safe }}
@@ -83,20 +83,20 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Daily SLA Records</h5>
+                    <h5>Дневные записи SLA</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Target SLA</th>
-                                    <th>Actual SLA</th>
-                                    <th>Status</th>
-                                    <th>Total Requests</th>
-                                    <th>Breached Requests</th>
-                                    <th>Avg Response (ms)</th>
+                                    <th>Дата</th>
+                                    <th>Целевой SLA</th>
+                                    <th>Фактический SLA</th>
+                                    <th>Статус</th>
+                                    <th>Всего запросов</th>
+                                    <th>Нарушенные запросы</th>
+                                    <th>Средний ответ (мс)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -111,9 +111,9 @@
                                     </td>
                                     <td>
                                         {% if record.sla_breached %}
-                                        <span class="badge bg-danger">BREACHED</span>
+                                        <span class="badge bg-danger">НАРУШЕНО</span>
                                         {% else %}
-                                        <span class="badge bg-success">COMPLIANT</span>
+                                        <span class="badge bg-success">СООТВЕТСТВИЕ</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ record.total_requests }}</td>
@@ -128,7 +128,7 @@
                     </div>
 
                     {% if not sla_records %}
-                    <div class="alert alert-info">No SLA records available for this period.</div>
+                    <div class="alert alert-info">Нет записей SLA за этот период.</div>
                     {% endif %}
                 </div>
             </div>
@@ -139,24 +139,24 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5>SLA Statistics</h5>
+                    <h5>Статистика SLA</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-sm">
                         <tr>
-                            <td>Days Tracked</td>
+                            <td>Отслеживаемые дни</td>
                             <td><strong>{{ stats.days_total }}</strong></td>
                         </tr>
                         <tr>
-                            <td>Compliant Days</td>
+                            <td>Соответствующие дни</td>
                             <td><strong class="text-success">{{ stats.days_compliant }}</strong></td>
                         </tr>
                         <tr>
-                            <td>Breached Days</td>
+                            <td>Нарушенные дни</td>
                             <td><strong class="text-danger">{{ stats.days_breached }}</strong></td>
                         </tr>
                         <tr>
-                            <td>Compliance Rate</td>
+                            <td>Процент соответствия</td>
                             <td><strong class="text-primary">{{ stats.compliance_rate|floatformat:2 }}%</strong></td>
                         </tr>
                     </table>
@@ -167,24 +167,24 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5>Performance Summary</h5>
+                    <h5>Сводка производительности</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-sm">
                         <tr>
-                            <td>Average SLA</td>
+                            <td>Средний SLA</td>
                             <td><strong>{{ stats.avg_sla|floatformat:2 }}%</strong></td>
                         </tr>
                         <tr>
-                            <td>Minimum SLA</td>
+                            <td>Минимальный SLA</td>
                             <td>{{ stats.min_sla|floatformat:2 }}%</td>
                         </tr>
                         <tr>
-                            <td>Maximum SLA</td>
+                            <td>Максимальный SLA</td>
                             <td>{{ stats.max_sla|floatformat:2 }}%</td>
                         </tr>
                         <tr>
-                            <td>SLA Range</td>
+                            <td>Диапазон SLA</td>
                             <td>{{ stats.min_sla|floatformat:2 }}% - {{ stats.max_sla|floatformat:2 }}%</td>
                         </tr>
                     </table>
@@ -195,9 +195,9 @@
 
     <div class="row mt-4">
         <div class="col-md-12">
-            <a href="{% url 'endpoint_detail' endpoint.id %}" class="btn btn-secondary">Back to Endpoint</a>
-            <a href="{% url 'endpoint_metrics' endpoint.id %}" class="btn btn-info">View Metrics</a>
-            <a href="{% url 'sla_forecast' endpoint.id %}" class="btn btn-info">View Forecast</a>
+            <a href="{% url 'endpoint_detail' endpoint.id %}" class="btn btn-secondary">Вернуться к эндпоинту</a>
+            <a href="{% url 'endpoint_metrics' endpoint.id %}" class="btn btn-info">Просмотр метрик</a>
+            <a href="{% url 'sla_forecast' endpoint.id %}" class="btn btn-info">Просмотр прогноза</a>
         </div>
     </div>
 </div>

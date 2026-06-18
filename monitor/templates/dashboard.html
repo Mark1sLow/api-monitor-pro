@@ -37,6 +37,23 @@
   </div>
 </div>
 
+<!-- Кнопки быстрого доступа -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Панель инструментов</h5>
+      </div>
+      <div class="card-body">
+        <a href="{% url 'alerts_list' %}" class="btn btn-outline-primary">Оповещения</a>
+        <a href="{% url 'schedule_list' %}" class="btn btn-outline-success">Расписание проверок</a>
+        <a href="{% url 'sla_dashboard' %}" class="btn btn-outline-info">SLA Dashboard</a>
+        <a href="{% url 'reports_list' %}" class="btn btn-outline-warning">Отчёты</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <h2 class="mb-4">Ваши проекты</h2>
 <a href="{% url 'create_project' %}" class="btn btn-success mb-4">+ Создать проект</a>
 
@@ -66,7 +83,9 @@
       </div>
       <div class="card-footer bg-light">
         <a href="{% url 'project_detail' proj.pk %}" class="btn btn-sm btn-primary">Подробнее</a>
-        <a href="{% url 'create_endpoint' proj.pk %}" class="btn btn-sm btn-success">Добавить эндпоинт</a>
+        <a href="{% url 'create_endpoint' proj.pk %}" class="btn btn-sm btn-success">+ Эндпоинт</a>
+        <a href="{% url 'project_metrics' proj.pk %}" class="btn btn-sm btn-info">Метрики</a>
+        <a href="{% url 'generate_report' proj.pk %}" class="btn btn-sm btn-warning">Отчёт</a>
       </div>
     </div>
   </div>

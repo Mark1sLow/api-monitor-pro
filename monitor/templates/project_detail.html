@@ -12,6 +12,10 @@
     <p class="text-muted">URL: <strong>{{ project.url }}</strong></p>
     <p class="text-muted">Создан: {{ project.created_at|date:"d M Y в H:i" }}</p>
   </div>
+  <div class="col-md-4 text-end">
+    <a href="{% url 'project_metrics' project.pk %}" class="btn btn-info">Метрики проекта</a>
+    <a href="{% url 'generate_report' project.pk %}" class="btn btn-warning">Генерировать отчёт</a>
+  </div>
 </div>
 
 <div class="row mb-4">
@@ -40,6 +44,8 @@
             <td>{{ ep.sla_error_rate|floatformat:1 }}%</td>
             <td>
               <a href="{% url 'endpoint_detail' ep.pk %}" class="btn btn-sm btn-primary">Просмотр</a>
+              <a href="{% url 'endpoint_metrics' ep.pk %}" class="btn btn-sm btn-info">Метрики</a>
+              <a href="{% url 'endpoint_sla_history' ep.pk %}" class="btn btn-sm btn-secondary">SLA</a>
               <a href="{% url 'endpoint_delete' ep.pk %}" class="btn btn-sm btn-danger">Удалить</a>
             </td>
           </tr>
