@@ -1,27 +1,19 @@
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual Environment
 venv/
 env/
 ENV/
 
-# Django
 db.sqlite3
 *.log
 
-# IDE
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
 
-# Environment variables
-.env
-
-# Env
 .env
 .secrets
 
